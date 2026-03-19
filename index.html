@@ -3,95 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safari-Merchant | ኢንቨስት ያድርጉና ያትርፉ</title>
+    <title>Safari-Merchant | Investment</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans Ethiopic', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        body { font-family: 'Noto Sans Ethiopic', sans-serif; overflow-x: hidden; }
+        .hidden { display: none; }
     </style>
 </head>
-<body class="bg-gray-50 pb-20">
+<body class="bg-gray-100">
 
-    <header class="bg-green-600 text-white p-4 sticky top-0 z-50 shadow-md">
-        <div class="flex justify-between items-center max-w-lg mx-auto">
-            <h1 class="text-xl font-bold italic underline decoration-yellow-400">Safari-Merchant</h1>
-            <div class="flex items-center space-x-2">
-                <span id="userBalance" class="bg-green-700 px-3 py-1 rounded-full text-sm">0.00 ETB</span>
-                <i class="fas fa-user-circle text-2xl"></i>
+    <div id="authSection" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+            <h1 class="text-3xl font-bold text-green-700 text-center italic mb-6">Safari-Merchant</h1>
+            
+            <div id="registerForm">
+                <h2 class="text-xl font-bold mb-4">ይመዝገቡ</h2>
+                <input type="tel" id="regPhone" placeholder="ስልክ ቁጥር (9...)" class="w-full p-3 border rounded-lg mb-4 outline-none focus:ring-2 focus:ring-green-500">
+                <input type="password" id="regPass" placeholder="የይለፍ ቃል" class="w-full p-3 border rounded-lg mb-4 outline-none">
+                <input type="text" id="refCode" placeholder="የሪፈራል ኮድ (ካለዎት)" class="w-full p-3 border rounded-lg mb-4 bg-gray-50">
+                <button onclick="handleSignUp()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">ይመዝገቡ</button>
+                <p class="mt-4 text-center text-sm">አካውንት አለዎት? <a href="#" onclick="toggleAuth()" class="text-green-600 font-bold">ይግቡ</a></p>
+            </div>
+
+            <div id="loginForm" class="hidden">
+                <h2 class="text-xl font-bold mb-4">ይግቡ</h2>
+                <input type="tel" id="loginPhone" placeholder="ስልክ ቁጥር" class="w-full p-3 border rounded-lg mb-4 outline-none">
+                <input type="password" id="loginPass" placeholder="የይለፍ ቃል" class="w-full p-3 border rounded-lg mb-4 outline-none">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">ይግቡ</button>
+                <p class="mt-4 text-center text-sm">አዲስ ነዎት? <a href="#" onclick="toggleAuth()" class="text-green-600 font-bold">ይመዝገቡ</a></p>
             </div>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-lg mx-auto p-4">
-        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-2xl p-6 text-white mb-6 shadow-lg">
-            <h2 class="text-2xl font-bold">እንኳን ደህና መጡ!</h2>
-            <p class="opacity-90">በSafari-Merchant ኢንቨስት ያድርጉ፣ በየቀኑ ትርፍ ያግኙ።</p>
-            <div class="mt-4 flex space-x-2">
-                <button class="bg-yellow-400 text-green-900 px-4 py-2 rounded-lg font-bold text-sm">Recharge</button>
-                <button class="bg-white text-green-700 px-4 py-2 rounded-lg font-bold text-sm">Withdraw</button>
+    <div id="mainApp" class="hidden pb-20">
+        <header class="bg-green-600 text-white p-4 sticky top-0 shadow-md flex justify-between items-center">
+            <span class="font-bold italic">Safari-Merchant</span>
+            <div class="bg-green-800 px-3 py-1 rounded-full text-sm">ቀሪ ሂሳብ: <span id="balanceDisplay">0.00</span> ETB</div>
+        </header>
+
+        <div class="p-4 max-w-lg mx-auto">
+            <div class="bg-white p-6 rounded-xl shadow-sm mb-6">
+                <h3 class="font-bold mb-3 text-lg text-gray-800">ሂሳብዎን ይሙሉ (Recharge)</h3>
+                <input type="number" id="rechargeAmount" placeholder="የብር መጠን" class="w-full p-3 border rounded-lg mb-3">
+                <select id="bankSelect" class="w-full p-3 border rounded-lg mb-4">
+                    <option value="CBE">Commercial Bank of Ethiopia (CBE)</option>
+                    <option value="Awash">Awash Bank</option>
+                    <option value="Dashen">Dashen Bank</option>
+                </select>
+                <button onclick="requestRecharge()" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg">አሁኑኑ ይሙሉ</button>
             </div>
-        </div>
 
-        <h3 class="text-lg font-bold mb-4 text-gray-800"><i class="fas fa-seedling text-green-600 mr-2"></i>የኢንቨስትመንት አማራጮች</h3>
-        <div class="grid grid-cols-1 gap-4">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=500" alt="Farm" class="w-full h-32 object-cover">
+            <h3 class="font-bold mb-4 text-gray-700">የኢንቨስትመንት አማራጮች</h3>
+            <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-4">
+                <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500" class="w-full h-32 object-cover">
                 <div class="p-4">
-                    <h4 class="font-bold text-gray-800 text-lg">የዶሮ እርባታ (Level 1)</h4>
-                    <div class="flex justify-between text-sm mt-2 text-gray-600">
-                        <span>ዋጋ: <b class="text-green-600">500 ETB</b></span>
-                        <span>የቀን ገቢ: <b class="text-green-600">25 ETB</b></span>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-lg">Level 1 - Chicken Farm</span>
+                        <span class="text-green-600 font-bold">500 ETB</span>
                     </div>
-                    <div class="flex justify-between text-sm mt-1 text-gray-600">
-                        <span>ቆይታ: 60 ቀናት</span>
-                        <span>ጠቅላላ ትርፍ: 1500 ETB</span>
-                    </div>
-                    <button class="w-full mt-4 bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700 transition">አሁኑኑ ይግዙ</button>
+                    <p class="text-sm text-gray-500 mt-1">በየቀኑ 25.00 ETB ገቢ ያግኙ</p>
+                    <button class="w-full mt-4 bg-green-600 text-white py-2 rounded-lg font-bold">ይግዙ</button>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=500" alt="Farm" class="w-full h-32 object-cover">
-                <div class="p-4">
-                    <h4 class="font-bold text-gray-800 text-lg">የበቆሎ እርሻ (Level 2)</h4>
-                    <div class="flex justify-between text-sm mt-2 text-gray-600">
-                        <span>ዋጋ: <b class="text-green-600">1000 ETB</b></span>
-                        <span>የቀን ገቢ: <b class="text-green-600 text-lg">55 ETB</b></span>
-                    </div>
-                    <button class="w-full mt-4 bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700 transition">አሁኑኑ ይግዙ</button>
-                </div>
-            </div>
         </div>
-    </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 flex justify-around items-center max-w-lg mx-auto shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        <button class="flex flex-col items-center text-green-600">
-            <i class="fas fa-home text-xl"></i>
-            <span class="text-xs">Home</span>
-        </button>
-        <button class="flex flex-col items-center text-gray-400">
-            <i class="fas fa-chart-line text-xl"></i>
-            <span class="text-xs">Invest</span>
-        </button>
-        <button class="flex flex-col items-center text-gray-400">
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex justify-around text-gray-400">
+            <i class="fas fa-home text-green-600 text-xl"></i>
+            <i class="fas fa-wallet text-xl"></i>
             <i class="fas fa-users text-xl"></i>
-            <span class="text-xs">Team</span>
-        </button>
-        <button class="flex flex-col items-center text-gray-400">
             <i class="fas fa-user text-xl"></i>
-            <span class="text-xs">My</span>
-        </button>
-    </nav>
+        </nav>
+    </div>
 
     <script>
-        // ሪፈራል ኮዱን ከURL ማንበቢያ
-        const urlParams = new URLSearchParams(window.location.search);
-        const ref = urlParams.get('ref');
-        if(ref) {
-            console.log("የሪፈራል ኮድ ተገኝቷል: " + ref);
-            localStorage.setItem('referralCode', ref);
+        // Supabase Setup
+        const _supabaseUrl = 'አንተ_ከ_Supabase_የምትወስደው_URL';
+        const _supabaseKey = 'አንተ_ከ_Supabase_የምትወስደው_KEY';
+        const supabase = supabase.createClient(_supabaseUrl, _supabaseKey);
+
+        function toggleAuth() {
+            document.getElementById('registerForm').classList.toggle('hidden');
+            document.getElementById('loginForm').classList.toggle('hidden');
+        }
+
+        // 1. መመዝገቢያ (Register)
+        async function handleSignUp() {
+            const phone = document.getElementById('regPhone').value;
+            const password = document.getElementById('regPass').value;
+            
+            const { data, error } = await supabase.auth.signUp({
+                phone: '+251' + phone,
+                password: password,
+            });
+
+            if (error) alert("ስህተት: " + error.message);
+            else {
+                alert("ምዝገባ ተሳክቷል! አሁን ይግቡ።");
+                toggleAuth();
+            }
+        }
+
+        // 2. መግቢያ (Login)
+        async function handleLogin() {
+            const phone = document.getElementById('loginPhone').value;
+            const password = document.getElementById('loginPass').value;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                phone: '+251' + phone,
+                password: password,
+            });
+
+            if (error) alert("የስልክ ቁጥር ወይም ይለፍ ቃል ተሳስቷል!");
+            else {
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                // ቀሪ ሂሳቡን ከዳታቤዝ አምጣ (እዚህ ጋር Logic ይጨመራል)
+            }
         }
     </script>
 </body>
